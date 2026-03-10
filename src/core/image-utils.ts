@@ -36,7 +36,8 @@ export function renderToCanvas(
   canvas: HTMLCanvasElement,
   source: ImageBitmap | HTMLCanvasElement,
   bgColor: string,
-  bgGradientId = 'none'
+  bgGradientId = 'none',
+  feather = 0
 ): void {
   const w = 'width' in source ? source.width : (source as HTMLCanvasElement).width;
   const h = 'height' in source ? source.height : (source as HTMLCanvasElement).height;
@@ -57,7 +58,9 @@ export function renderToCanvas(
     ctx.fillRect(0, 0, w, h);
   }
 
+  if (feather > 0) ctx.filter = `blur(${feather}px)`;
   ctx.drawImage(source as CanvasImageSource, 0, 0);
+  ctx.filter = 'none';
 }
 
 /** Download a canvas as PNG */

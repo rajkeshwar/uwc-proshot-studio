@@ -192,7 +192,7 @@ export class PsPassportPrintPanel extends LitElement {
               </select>
             </div>
             <ps-toggle label="Show crop guides" .checked=${this._guides}
-              @ps-change=${(e: CustomEvent) => { this._guides = e.detail.checked; }}
+              @ps-change=${(e: CustomEvent) => { this._guides = e.detail.checked; if (this._hasResult) this._generate(); }}
             ></ps-toggle>
           </div>
 

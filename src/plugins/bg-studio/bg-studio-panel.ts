@@ -134,6 +134,14 @@ export class PsBgStudioPanel extends LitElement {
     }
   `;
 
+  _handlePsChange(e: CustomEvent)  {
+    this._showBA = e.detail.checked;
+    const body = this._canvasBody;
+    if (!body) return;
+    (body.querySelector('.ba-after') as HTMLElement)?.style.setProperty('display', this._showBA ? '' : 'none');
+    (body.querySelector('.ba-divider') as HTMLElement)?.style.setProperty('display', this._showBA ? '' : 'none');
+  }
+
   render() {
     const gradients: BgGradientDef[] = BG_GRADIENTS;
     return html`
@@ -181,12 +189,12 @@ export class PsBgStudioPanel extends LitElement {
               label="Feather edges"
               min="0" max="10"
               .value=${this._feather}
-              @ps-change=${(e: CustomEvent) => { this._feather = e.detail.value; }}
+              @ps-change=${(e: CustomEvent) => { this._feather = e.detail.value; if (this._hasResult) this._showResult(); }}
             ></ps-slider>
             <ps-toggle
               label="Show before / after"
               .checked=${this._showBA}
-              @ps-change=${(e: CustomEvent) => { this._showBA = e.detail.checked; }}
+              @ps-change=${this._handlePsChange.bind(this)}
             ></ps-toggle>
           </div>
 
@@ -295,7 +303,7 @@ export class PsBgStudioPanel extends LitElement {
     const afterDiv = document.createElement('div');
     afterDiv.className = 'ba-after';
     const afterCanvas = document.createElement('canvas');
-    renderToCanvas(afterCanvas, this._resultBmp, this._bgColor, this._bgGradient);
+    renderToCanvas(afterCanvas, this._resultBmp, this._bgColor, this._bgGradient, this._feather);
     afterDiv.appendChild(afterCanvas);
     baWrap.appendChild(afterDiv);
 
@@ -313,7 +321,7 @@ export class PsBgStudioPanel extends LitElement {
 
     // Download canvas
     this._dlCanvas = document.createElement('canvas');
-    renderToCanvas(this._dlCanvas, this._resultBmp, this._bgColor, this._bgGradient);
+    renderToCanvas(this._dlCanvas, this._resultBmp, this._bgColor, this._bgGradient, this._feather);
 
     // Store result ref on frame for bg updates
     (frame as any)._resultBmp = this._resultBmp;
