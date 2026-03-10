@@ -325,7 +325,7 @@ export class PsPassportPrintPanel extends LitElement {
 
     // Label
     ctx.fillStyle = 'rgba(150,150,150,0.6)';
-    ctx.font = `${Math.round(6 * mmToPx)}px sans-serif`;
+    ctx.font = `${Math.round(2 * mmToPx)}px sans-serif`;
     ctx.fillText(
       `ProShot Studio · ${PASSPORT_SIZES[this._country]?.label ?? 'Custom'} · ${cols}×${rows}=${cols*rows} photos · ${dpi}dpi`,
       marginPx, sheetH - Math.round(2 * mmToPx)
