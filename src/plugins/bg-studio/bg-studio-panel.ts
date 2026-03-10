@@ -34,6 +34,7 @@ export class PsBgStudioPanel extends LitElement {
   @state() private _dimLabel    = '';
 
   @query('#canvas-body') private _canvasBody!: HTMLElement;
+  @query('ps-drop-zone') private _dropZone!: any;
 
   private _origBmp:   ImageBitmap | null = null;
   private _resultBmp: ImageBitmap | null = null;
@@ -50,7 +51,7 @@ export class PsBgStudioPanel extends LitElement {
     [hidden] { display: none !important; }
 
     /* ── Layout ── */
-    .split { display: grid; grid-template-columns: 300px 1fr; height: 100%; width: 100%; overflow: hidden; }
+    .split { display: grid; grid-template-columns: 320px 1fr; height: 100%; width: 100%; overflow: hidden; }
 
     .section { padding: 1rem 1.1rem; border-bottom: 1px solid var(--ps-border, #252a32); }
     .section-title {
@@ -146,6 +147,7 @@ export class PsBgStudioPanel extends LitElement {
               label="Drop headshot here"
               hint="JPG · PNG · WEBP · up to 10MB"
               @ps-file-selected=${this._onFileSelected}
+              @ps-file-removed=${this._onFileRemoved}
             ></ps-drop-zone>
           </div>
 
@@ -244,6 +246,15 @@ export class PsBgStudioPanel extends LitElement {
     this._dimLabel  = `${this._origBmp.width} × ${this._origBmp.height}px`;
     this._showOriginal();
     engine.notify('Photo loaded — ready to process', 'info');
+  }
+
+  private _onFileRemoved() {
+    this._origBmp   = null;
+    this._resultBmp = null;
+    this._hasSource = false;
+    this._hasResult = false;
+    this._dimLabel  = '';
+    this._canvasBody?.querySelectorAll('.img-frame').forEach(el => el.remove());
   }
 
   private _showOriginal(): void {

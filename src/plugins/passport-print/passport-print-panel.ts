@@ -56,9 +56,10 @@ export class PsPassportPrintPanel extends LitElement {
   @state() private _infoH     = '51mm';
   @state() private _infoCount = 8;
 
-  @query('#p-canvas') private _canvas!: HTMLCanvasElement;
-  @query('#p-result') private _resultEl!: HTMLElement;
-  @query('#p-placeholder') private _placeholder!: HTMLElement;
+  @query('#p-canvas')       private _canvas!: HTMLCanvasElement;
+  @query('#p-result')       private _resultEl!: HTMLElement;
+  @query('#p-placeholder')  private _placeholder!: HTMLElement;
+  @query('ps-drop-zone')    private _dropZone!: any;
 
   private _sourceBmp: ImageBitmap | null = null;
 
@@ -69,6 +70,12 @@ export class PsPassportPrintPanel extends LitElement {
       this._hasSource = true;
       this._updateInfo();
       engine.notify('Photo loaded for passport sheet', 'info');
+      this.updateComplete.then(() => {
+        const c = document.createElement('canvas');
+        c.width = bmp.width; c.height = bmp.height;
+        c.getContext('2d')!.drawImage(bmp, 0, 0);
+        this._dropZone?.setPreview('From Smart Crop', c.toDataURL('image/jpeg', 0.5));
+      });
     });
     this._updateInfo();
   }
@@ -135,7 +142,7 @@ export class PsPassportPrintPanel extends LitElement {
         <ps-collapsible-sidebar>
           <div class="section">
             <div class="section-title">Upload Photo</div>
-            <ps-drop-zone icon="⊞" label="Drop headshot here" hint="Use a photo with removed background for best results" @ps-file-selected=${this._onFile}></ps-drop-zone>
+            <ps-drop-zone icon="⊞" label="Drop headshot here" hint="Use a photo with removed background for best results" @ps-file-selected=${this._onFile} @ps-file-removed=${this._onFileRemoved}></ps-drop-zone>
           </div>
 
           <div class="section">
@@ -228,6 +235,13 @@ export class PsPassportPrintPanel extends LitElement {
     engine.notify('Photo loaded for passport sheet', 'info');
   }
 
+  private _onFileRemoved() {
+    this._sourceBmp = null;
+    this._hasSource = false;
+    this._hasResult = false;
+    if (this._canvas) { const ctx = this._canvas.getContext('2d'); ctx?.clearRect(0,0,this._canvas.width,this._canvas.height); }
+  }
+
   private _getPassportSize(): { w: number; h: number } {
     if (this._country === 'custom') return { w: this._customW, h: this._customH };
     return PASSPORT_SIZES[this._country];
@@ -311,7 +325,7 @@ export class PsPassportPrintPanel extends LitElement {
 
     // Label
     ctx.fillStyle = 'rgba(150,150,150,0.6)';
-    ctx.font = `${Math.round(2 * mmToPx)}px sans-serif`;
+    ctx.font = `${Math.round(6 * mmToPx)}px sans-serif`;
     ctx.fillText(
       `ProShot Studio · ${PASSPORT_SIZES[this._country]?.label ?? 'Custom'} · ${cols}×${rows}=${cols*rows} photos · ${dpi}dpi`,
       marginPx, sheetH - Math.round(2 * mmToPx)

@@ -34,10 +34,9 @@ export class PsEnhancePanel extends LitElement {
   @state() private _activePreset  = '';
   @state() private _hasSource     = false;
   @state() private _hasResult     = false;
-  @state() private _thumbVisible  = false;
 
   @query('#e-canvas')       private _canvas!: HTMLCanvasElement;
-  @query('#e-thumb-canvas') private _thumbCanvas!: HTMLCanvasElement;
+  @query('ps-drop-zone')    private _dropZone!: any;
 
   private _sourceBmp: ImageBitmap | null = null;
 
@@ -45,6 +44,12 @@ export class PsEnhancePanel extends LitElement {
     super.connectedCallback();
     engine.bus.on('send:to-enhance', ({ bmp }) => {
       this._loadSource(bmp);
+      this.updateComplete.then(() => {
+        const c = document.createElement('canvas');
+        c.width = bmp.width; c.height = bmp.height;
+        c.getContext('2d')!.drawImage(bmp, 0, 0);
+        this._dropZone?.setPreview('From BG Studio', c.toDataURL('image/jpeg', 0.5));
+      });
     });
   }
 
@@ -52,7 +57,7 @@ export class PsEnhancePanel extends LitElement {
     :host { display: flex; flex: 1; overflow: hidden; min-height: 0; }
     [hidden] { display: none !important; }
 
-    .split { display: grid; grid-template-columns: 300px 1fr; height: 100%; width: 100%; overflow: hidden; }
+    .split { display: grid; grid-template-columns: 320px 1fr; height: 100%; width: 100%; overflow: hidden; }
     .section { padding: 1rem 1.1rem; border-bottom: 1px solid var(--ps-border,#252a32); }
     .section-title { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ps-muted,#6b7280); margin-bottom: 0.75rem; }
 
@@ -70,9 +75,6 @@ export class PsEnhancePanel extends LitElement {
 
     .img-frame { position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px var(--ps-border2,#2e3440), 0 8px 32px rgba(0,0,0,0.6); }
     canvas { display: block; max-width: min(100%,700px); max-height: calc(100vh - 170px); }
-
-    .thumb { border-radius: var(--ps-radius,6px); overflow: hidden; aspect-ratio: 1; background: var(--ps-panel,#1a1e24); display: flex; align-items: center; justify-content: center; margin-bottom: 0.7rem; max-height: 160px; }
-    .thumb canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
 
     .btn { display: flex; align-items: center; justify-content: center; gap: 0.45rem; padding: 0.55rem 1rem; border-radius: var(--ps-radius,6px); font-family: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; width: 100%; }
     .btn-green { background: var(--ps-green,#22c55e); color: #000; }
@@ -94,10 +96,8 @@ export class PsEnhancePanel extends LitElement {
             <ps-drop-zone icon="◈" label="Drop photo here"
               hint='Or use "Send to Enhance" from BG Studio'
               @ps-file-selected=${this._onFile}
+              @ps-file-removed=${this._onFileRemoved}
             ></ps-drop-zone>
-            ${this._thumbVisible ? html`
-              <div class="thumb"><canvas id="e-thumb-canvas"></canvas></div>
-            ` : ''}
           </div>
 
           <div class="section">
@@ -162,21 +162,18 @@ export class PsEnhancePanel extends LitElement {
     this._loadSource(bmp);
   }
 
+  private _onFileRemoved() {
+    this._sourceBmp    = null;
+    this._hasSource    = false;
+    this._hasResult    = false;
+    this._activePreset = '';
+    if (this._canvas) { const ctx = this._canvas.getContext('2d'); ctx?.clearRect(0,0,this._canvas.width,this._canvas.height); }
+  }
+
   private _loadSource(bmp: ImageBitmap): void {
     this._sourceBmp = bmp;
     this._hasSource = true;
-    this._thumbVisible = true;
-    // Draw thumbnail after render
-    this.updateComplete.then(() => {
-      if (this._thumbCanvas) {
-        const size = 150;
-        const ar = bmp.width / bmp.height;
-        this._thumbCanvas.width  = ar >= 1 ? size : size * ar;
-        this._thumbCanvas.height = ar >= 1 ? size / ar : size;
-        this._thumbCanvas.getContext('2d')!.drawImage(bmp, 0, 0, this._thumbCanvas.width, this._thumbCanvas.height);
-      }
-      this._apply();
-    });
+    this.updateComplete.then(() => this._apply());
   }
 
   private _setParam(key: keyof EnhanceParams, value: number): void {

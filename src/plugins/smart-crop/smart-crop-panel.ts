@@ -41,6 +41,7 @@ export class PsSmartCropPanel extends LitElement {
   @query('#crop-canvas') private _canvas!: HTMLCanvasElement;
   @query('#result')      private _resultEl!: HTMLElement;
   @query('#placeholder') private _placeholder!: HTMLElement;
+  @query('ps-drop-zone') private _dropZone!: any;
 
   private _sourceBmp: ImageBitmap | null = null;
   private _face: FaceDetectionResult | null = null;
@@ -50,6 +51,13 @@ export class PsSmartCropPanel extends LitElement {
     engine.bus.on('send:to-crop', ({ bmp }) => {
       this._loadSource(bmp);
       this._performCrop();
+      // Show preview in drop-zone (image arrived from another panel)
+      this.updateComplete.then(() => {
+        const c = document.createElement('canvas');
+        c.width = bmp.width; c.height = bmp.height;
+        c.getContext('2d')!.drawImage(bmp, 0, 0);
+        this._dropZone?.setPreview('From BG Studio', c.toDataURL('image/jpeg', 0.5));
+      });
     });
   }
 
@@ -57,7 +65,7 @@ export class PsSmartCropPanel extends LitElement {
     :host { display: flex; flex: 1; overflow: hidden; min-height: 0; }
     [hidden] { display: none !important; }
 
-    .split { display: grid; grid-template-columns: 300px 1fr; height: 100%; width: 100%; overflow: hidden; }
+    .split { display: grid; grid-template-columns: 320px 1fr; height: 100%; width: 100%; overflow: hidden; }
     .section { padding: 1rem 1.1rem; border-bottom: 1px solid var(--ps-border,#252a32); }
     .section-title { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ps-muted,#6b7280); margin-bottom: 0.75rem; }
 
@@ -106,6 +114,7 @@ export class PsSmartCropPanel extends LitElement {
               icon="⊡" label="Drop photo here"
               hint='Or use "Send to Smart Crop" from BG Studio'
               @ps-file-selected=${this._onFile}
+              @ps-file-removed=${this._onFileRemoved}
             ></ps-drop-zone>
             ${this._faceDetected ? html`<div class="face-badge">✓ Face detected — ready to align</div>` : ''}
           </div>
@@ -181,6 +190,15 @@ export class PsSmartCropPanel extends LitElement {
   private async _onFile(e: CustomEvent) {
     const bmp = await bitmapFromFile(e.detail.file);
     await this._loadSource(bmp);
+  }
+
+  private _onFileRemoved() {
+    this._sourceBmp    = null;
+    this._hasSource    = false;
+    this._hasResult    = false;
+    this._faceDetected = false;
+    this._faceInfo     = '';
+    if (this._canvas) { const ctx = this._canvas.getContext('2d'); ctx?.clearRect(0,0,this._canvas.width,this._canvas.height); }
   }
 
   private async _loadSource(bmp: ImageBitmap): Promise<void> {

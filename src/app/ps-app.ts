@@ -61,14 +61,12 @@ export class PsApp extends LitElement {
       flex: 1;
       overflow: hidden;
       min-height: 0;
-      /* Use position:relative so workspaces stack; active is shown, rest hidden */
       position: relative;
       display: flex;
       flex-direction: column;
     }
 
     .workspace {
-      /* Hidden panels: removed from layout entirely */
       display: none;
       flex: 1;
       overflow: hidden;
@@ -79,9 +77,9 @@ export class PsApp extends LitElement {
     }
 
     /* ── Mobile bottom nav ── */
-    /* Hidden on desktop, shown on mobile via media query */
     .mobile-nav {
       display: none;
+      /* Fixed to viewport bottom so it never scrolls away */
       position: fixed;
       bottom: 0; left: 0; right: 0;
       background: var(--ps-surface, #13161a);
@@ -112,15 +110,31 @@ export class PsApp extends LitElement {
     .mnav-btn.active { color: var(--ps-accent, #22d3c8); }
 
     @media (max-width: 767px) {
+      /* Host becomes a normal block — its child .workspace scrolls */
       :host {
-        overflow: auto;
+        display: block;
         height: auto;
         min-height: 100dvh;
-        padding-bottom: 56px;
+        overflow: visible;
       }
-      /* Show mobile nav on small screens */
+
+      .workspaces {
+        display: block;
+        overflow: visible;
+        min-height: unset;
+      }
+
+      /* Active workspace scrolls vertically; 56px bottom padding clears the fixed nav */
+      .workspace.active {
+        display: block;
+        overflow-y: auto;
+        min-height: calc(100dvh - 48px); /* 48px = header height approx */
+        padding-bottom: 64px;            /* clear fixed nav + breathing room */
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Show mobile nav */
       .mobile-nav { display: flex; }
-      .workspace.active { min-height: calc(100dvh - 104px); }
     }
   `;
 

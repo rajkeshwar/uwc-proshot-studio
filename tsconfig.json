@@ -5,7 +5,7 @@
     "moduleResolution":    "bundler",
     "lib":                 ["ES2020", "DOM", "DOM.Iterable"],
     "strict":              true,
-    "noUnusedLocals":      false,
+    "noUnusedLocals":      true,
     "noUnusedParameters":  false,
     "noImplicitReturns":   true,
     "declaration":         true,
