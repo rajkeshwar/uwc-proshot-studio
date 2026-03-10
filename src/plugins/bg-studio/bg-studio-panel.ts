@@ -24,7 +24,7 @@ const SWATCHES: SwatchDef[] = [
 export class PsBgStudioPanel extends LitElement {
   @state() private _bgColor     = '#ffffff';
   @state() private _bgGradient  = 'none';
-  @state() private _feather     = 2;
+  @state() private _feather     = 0;
   @state() private _showBA      = true;
   @state() private _progress    = 0;
   @state() private _progMsg     = '';
