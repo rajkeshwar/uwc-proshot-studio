@@ -1,0 +1,28 @@
+{
+  "name": "uwc-proshot-studio",
+  "version": "1.0.0",
+  "description": "ProShot Studio — AI Headshot Suite (TypeScript + Lit, plugin architecture)",
+  "type": "module",
+  "scripts": {
+    "start": "web-dev-server --config web-dev-server.config.mjs",
+    "build": "tsc --noEmit && rollup -c rollup.config.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@imgly/background-removal": "^1.4.5",
+    "lit": "^3.2.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@web/dev-server": "^0.4.6",
+    "@web/dev-server-esbuild": "^0.4.2",
+    "@web/rollup-plugin-html": "^3.1.0",
+    "rollup": "^4.18.0",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "tslib": "^2.6.3",
+    "typescript": "^5.4.5"
+  }
+}
